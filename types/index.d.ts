@@ -22,6 +22,7 @@ export declare class Store<S> {
 
   registerModule<T>(path: string, module: Module<T, S>): void;
   registerModule<T>(path: string[], module: Module<T, S>): void;
+  registerModule<T>(path: string[], module: () => Promise<Module<T, S>>): Promise<Module<T, S>>;
 
   unregisterModule(path: string): void;
   unregisterModule(path: string[]): void;

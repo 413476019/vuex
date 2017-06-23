@@ -199,6 +199,10 @@ namespace RegisterModule {
     state: { value: 2 }
   });
 
+  store.registerModule("a", () => Promise.resolve({
+    state: { value: 1 }
+  }));
+
   store.unregisterModule(["a", "b"]);
   store.unregisterModule("a");
 }

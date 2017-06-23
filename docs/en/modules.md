@@ -242,7 +242,57 @@ The module's state will be exposed as `store.state.myModule` and `store.state.ne
 
 Dynamic module registration makes it possible for other Vue plugins to also leverage Vuex for state management by attaching a module to the application's store. For example, the [`vuex-router-sync`](https://github.com/vuejs/vuex-router-sync) library integrates vue-router with vuex by managing the application's route state in a dynamically attached module.
 
-You can also remove a dynamically registered module with `store.unregisterModule(moduleName)`. Note you cannot remove static modules (declared at store creation) with this method.
+### Lazy Load Dynamic Modules
+
+You can code split you Vuex store and dynamically register store modules. 
+
+``` js
+const myModule = () => import('path/to/module')
+
+store.registerModule('myModule', myModule)
+```
+
+This is simple enough, however you will need to ensure that modules are registered before you can use them. Attempting to use a module before it is registered will not work and will cause errors. 
+
+For example, with vue-router, you can ensure that routing does not resolve until the required modules have been loaded. You can find further [implementation details here](https://ssr.vuejs.org/en/data.html) under the **Client Data Fetching** section. Using this pattern will ensure that we can register modules before use within components.
+
+Overall this pattern will require more awareness and management of the store module registration, however if well managed it can be a very poweful feature and significantly reduce the initial bundle size of your application.
+
+``` js
+import { mapGetters } from 'vuex'
+
+const myModule = () => import('path/to/module')
+
+export default {
+  asyncData(store) {
+    return store.registerModule('myModule', myModule)
+      .then(() => store.dispatch('myModule/getData'))
+  },
+
+  computed: {
+    ...mapGetters('myModule', ['a'])
+  }
+}
+```
+
+Using async and await this becomes less verbose for the registering of a module:
+
+``` js
+import { mapGetters } from 'vuex'
+
+const myModule = () => import('path/to/module')
+
+export default {
+  async asyncData(store) {
+    await store.registerModule('myModule', myModule)
+    await store.dispatch('myModule/getData')
+  },
+
+  computed: {
+    ...mapGetters('myModule', ['a'])
+  }
+}
+```
 
 ### Module Reuse
 
